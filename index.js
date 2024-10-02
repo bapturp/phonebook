@@ -17,6 +17,9 @@ app.use(
 // CORS
 app.use(cors())
 
+// Serve frontend
+app.use(express.static('dist'))
+
 app.get('/api/persons', (request, response) => {
   response.json(persons)
 })
@@ -63,7 +66,7 @@ app.post('/api/persons', (request, response) => {
   response.json(person)
 })
 
-const PORT = process.env.port || 3001
+const PORT = process.env.port || 8080
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
