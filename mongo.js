@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
+require('dotenv').config()
 
-if (!process.argv.length === 3 || !process.argv.length === 5) {
+if (!process.argv.length === 2 || !process.argv.length === 4) {
   console.log(
     `wrong number of arguments, usage:
     node mongo.js <MONGO_DB_PASSWORD>
@@ -9,9 +10,7 @@ if (!process.argv.length === 3 || !process.argv.length === 5) {
   process.exit(1)
 }
 
-const password = process.argv[2]
-
-const url = `mongodb+srv://yo7AgqB4KMEo9TmHP4Wb:${password}@cluster1.xx6kbup.mongodb.net/phonebook?retryWrites=true&w=majority&appName=Cluster1`
+const url = process.env.MONGODB
 
 mongoose.set('strictQuery', false)
 
@@ -32,8 +31,8 @@ const getPeople = () => {
 }
 
 const savePerson = () => {
-  const name = process.argv[3]
-  const number = process.argv[4]
+  const name = process.argv[2]
+  const number = process.argv[3]
 
   const person = new Person({
     name: name,
@@ -47,10 +46,10 @@ const savePerson = () => {
 }
 
 switch (process.argv.length) {
-  case 3:
+  case 2:
     getPeople()
     break
-  case 5:
+  case 4:
     savePerson()
     break
 }
