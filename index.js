@@ -1,8 +1,10 @@
 const express = require('express')
+const morgan = require('morgan')
 let persons = require('./data')
 
 const app = express()
 app.use(express.json())
+app.use(morgan('tiny'))
 
 app.get('/api/persons', (request, response) => {
   response.json(persons)
