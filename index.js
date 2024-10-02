@@ -1,7 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-let persons = require('./data')
+const Person = require('./models/person')
 
 const app = express()
 
@@ -20,25 +21,32 @@ app.use(cors())
 // Serve frontend
 app.use(express.static('dist'))
 
+// routes handler
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then((person) => response.json(person))
 })
 
 app.get('/info', (request, response) => {
-  response.send(
-    `<p>Phonebook has info for ${persons.length} people</p><p>${Date()}</p>`
+  Person.find({}).then((people) =>
+    response.send(
+      `<p>Phonebook has info for ${people.length} people</p><p>${Date()}</p>`
+    )
   )
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  const person = persons.find((person) => person.id === id)
-
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+      response.status(500).end()
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -48,22 +56,37 @@ app.delete('/api/persons/:id', (request, response) => {
   response.status(204).end()
 })
 
-app.post('/api/persons', (request, response) => {
-  const person = request.body
-  if (!person.name || !person.number) {
+app.post('/api/persons', async (request, response) => {
+  const { name, number } = request.body
+  if (!name || !number) {
     return response.status(400).json({ error: 'content missing' })
   }
 
-  personExists = persons.find((p) => p.name === person.name)
+  let people
+  try {
+    people = await Person.find({})
+  } catch (error) {
+    console.log(error)
+    response.status(500).json({ error: error })
+  }
+
+  const personExists = people.find((p) => p.name === name)
   if (personExists) {
     return response.status(400).json({ error: 'name must be unique' })
   }
 
-  person.id = Math.round(Math.random() * 99999999)
+  const newPerson = new Person({
+    name: name,
+    number: number,
+  })
 
-  persons = persons.concat(person)
-
-  response.json(person)
+  try {
+    const result = await newPerson.save()
+    response.json(result)
+  } catch (error) {
+    console.log(error)
+    response.status(500).json({ error: error })
+  }
 })
 
 const PORT = process.env.port || 8080
