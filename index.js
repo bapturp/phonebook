@@ -3,8 +3,15 @@ const morgan = require('morgan')
 let persons = require('./data')
 
 const app = express()
+
+// Parse json if the content type is `application/json`
 app.use(express.json())
-app.use(morgan('tiny'))
+
+// Morgan logger middleware
+morgan.token('body', (request, response) => JSON.stringify(request.body))
+app.use(
+  morgan(':method :url :status :res[content-length] - :response-time ms :body')
+)
 
 app.get('/api/persons', (request, response) => {
   response.json(persons)
