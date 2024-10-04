@@ -98,6 +98,14 @@ app.post('/api/persons', async (request, response) => {
   }
 })
 
+app.put('/api/persons/:id', (request, response, next) => {
+  const { number } = request.body
+  // TODO: the result object returned by mongo is the old person, not the modified one. Fix mongoose to send the updated person
+  Person.findByIdAndUpdate(request.params.id, { number: number })
+    .then((person) => response.json(person))
+    .catch((error) => next(error))
+})
+
 // 404 not found handler
 const notFound = (request, response) => {
   response.status(404).json({ error: 'Not Found' })
