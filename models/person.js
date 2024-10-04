@@ -8,7 +8,7 @@ console.log('Connecting to MongoDB...')
 
 mongoose
   .connect(url)
-  .then((result) => console.log('Connected to MongoDB'))
+  .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.log('Error connecting to MongoDB:', error.message))
 
 const personSchema = new mongoose.Schema({
@@ -21,7 +21,7 @@ const personSchema = new mongoose.Schema({
 
 // Transform the objets returned by Mongo:
 personSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
+  transform: (_document, returnedObject) => {
     // add the property `.id` from `._id` casted to a string
     returnedObject.id = returnedObject._id.toString()
     // delete the property `._id`

@@ -10,7 +10,7 @@ const app = express()
 app.use(express.json())
 
 // Logger middleware
-morgan.token('body', (request, response) => JSON.stringify(request.body))
+morgan.token('body', (request) => JSON.stringify(request.body))
 app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
 )
@@ -114,18 +114,18 @@ const notFound = (request, response) => {
 app.use(notFound)
 
 // 400 error handler
-const errorHandler = (error, request, response, next) => {
+const errorHandler = (error, request, response) => {
   console.error(error)
 
   switch (error.name) {
-    case 'CastError':
-      return response.status(400).json({ error: 'malformatted id' })
-    case 'ContentMissing':
-      return response.status(400).json({ error: error.message })
-    case 'ValidationError':
-      return response.status(400).json({ error: error.message })
-    default:
-      return response.status(500).json({ error: error })
+  case 'CastError':
+    return response.status(400).json({ error: 'malformatted id' })
+  case 'ContentMissing':
+    return response.status(400).json({ error: error.message })
+  case 'ValidationError':
+    return response.status(400).json({ error: error.message })
+  default:
+    return response.status(500).json({ error: error })
   }
 }
 // Must be the last handler

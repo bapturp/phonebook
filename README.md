@@ -15,3 +15,9 @@ Run the container
 ```sh
 docker run -p 8080:8080 bapturp/phonebook:4ca4d0c
 ```
+
+## Lint
+
+```sh
+npx eslint index.js
+```
