@@ -9,7 +9,7 @@ const app = express()
 // Parse json if the content type is `application/json`
 app.use(express.json())
 
-// Morgan logger middleware
+// Logger middleware
 morgan.token('body', (request, response) => JSON.stringify(request.body))
 app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
@@ -18,7 +18,7 @@ app.use(
 // CORS
 app.use(cors())
 
-// Serve frontend
+// Serve React app (static content)
 app.use(express.static('dist'))
 
 // routes handler
@@ -63,36 +63,38 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch((error) => next(error))
 })
 
+class ContentMissingError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'ContentMissing'
+  }
+}
+
 app.post('/api/persons', async (request, response) => {
   const { name, number } = request.body
+
   if (!name || !number) {
-    return response.status(400).json({ error: 'content missing' })
+    return next(new ContentMissingError('content missing'))
   }
-
-  let people
-  try {
-    people = await Person.find({})
-  } catch (error) {
-    console.log(error)
-    response.status(500).json({ error: error })
-  }
-
-  const personExists = people.find((p) => p.name === name)
-  if (personExists) {
-    return response.status(400).json({ error: 'name must be unique' })
-  }
-
-  const newPerson = new Person({
-    name: name,
-    number: number,
-  })
 
   try {
-    const result = await newPerson.save()
-    response.json(result)
+    const people = await Person.find({})
+    const personExists = people.find((p) => p.name === name)
+
+    if (personExists) {
+      return response.status(400).json({ error: 'name must be unique' })
+    }
+
+    const newPerson = new Person({
+      name: name,
+      number: number,
+    })
+
+    const savedPerson = await newPerson.save()
+
+    response.json(savedPerson)
   } catch (error) {
-    console.log(error)
-    response.status(500).json({ error: error })
+    next(error)
   }
 })
 
@@ -107,13 +109,16 @@ app.use(notFound)
 const errorHandler = (error, request, response, next) => {
   console.error(error)
 
-  if (error.name === 'CastError') {
-    return response.status(400).json({ error: 'malformatted id' })
+  switch (error.name) {
+    case 'CastError':
+      return response.status(400).json({ error: 'malformatted id' })
+    case 'ContentMissing':
+      return response.status(400).json({ error: error.message })
+    default:
+      return response.status(500).json({ error: error })
   }
-
-  next(error)
 }
-// The error handler must be declared as the last handler
+// Must be the last handler
 app.use(errorHandler)
 
 const port = process.env.PORT || 8080
