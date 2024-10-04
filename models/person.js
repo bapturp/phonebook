@@ -13,7 +13,10 @@ mongoose
 
 const personSchema = new mongoose.Schema({
   name: { type: String, minLength: 3 },
-  number: String,
+  number: {
+    type: String,
+    validate: { validator: (v) => /^\d{2,3}-\d+$/.test(v) },
+  },
 })
 
 // Transform the objets returned by Mongo:
