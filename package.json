@@ -9,7 +9,7 @@
     "build": "npm run build:ui && npm run build:container",
     "build:ui": "rm -r dist/ && cd ../../part2/phonebook && rm -r dist/ && npm run build && cp -r dist/ ../../part3/phonebook/dist",
     "build:container": "docker-buildx build -t bapturp/phonebook:$(git log --pretty=format:'%h' -n 1) -t bapturp/phonebook:latest .",
-    "container": "docker run -p 8080:8080 --rm bapturp/phonebook:latest",
+    "container": "docker run -p 8080:8080 --env-file .env --rm bapturp/phonebook:latest",
     "lint": "eslint ."
   },
   "author": "",
