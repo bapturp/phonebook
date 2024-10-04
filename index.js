@@ -22,38 +22,45 @@ app.use(cors())
 app.use(express.static('dist'))
 
 // routes handler
-app.get('/api/persons', (request, response) => {
-  Person.find({}).then((person) => response.json(person))
+app.get('/api/persons', (request, response, next) => {
+  Person.find({})
+    .then((person) => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.json([{}])
+      }
+    })
+    .catch((error) => next(error))
 })
 
-app.get('/info', (request, response) => {
-  Person.find({}).then((people) =>
-    response.send(
-      `<p>Phonebook has info for ${people.length} people</p><p>${Date()}</p>`
-    )
-  )
+app.get('/info', (request, response, next) => {
+  Person.find({})
+    .then((people) => {
+      const len = people ? people.length : 0
+      response.send(
+        `<p>Phonebook has info for ${len} people</p><p>${Date()}</p>`
+      )
+    })
+    .catch((error) => next(error))
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then((person) => {
       if (person) {
         response.json(person)
       } else {
-        response.status(404).end()
+        notFound(request, response)
       }
     })
-    .catch((error) => {
-      console.log(error)
-      response.status(500).end()
-    })
+    .catch((error) => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  persons = persons.filter((person) => person.id !== id)
-
-  response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(() => response.status(204).end())
+    .catch((error) => next(error))
 })
 
 app.post('/api/persons', async (request, response) => {
@@ -89,7 +96,27 @@ app.post('/api/persons', async (request, response) => {
   }
 })
 
-const PORT = process.env.port || 8080
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+// 404 not found handler
+const notFound = (request, response) => {
+  response.status(404).json({ error: 'Not Found' })
+}
+// the not found handler must be declared after all the route handlers but before the error handler
+app.use(notFound)
+
+// 400 error handler
+const errorHandler = (error, request, response, next) => {
+  console.error(error)
+
+  if (error.name === 'CastError') {
+    return response.status(400).json({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+// The error handler must be declared as the last handler
+app.use(errorHandler)
+
+const port = process.env.PORT || 8080
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`)
 })

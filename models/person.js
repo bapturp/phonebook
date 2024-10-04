@@ -16,12 +16,18 @@ const personSchema = new mongoose.Schema({
   number: String,
 })
 
+// Transform the objets returned by Mongo:
 personSchema.set('toJSON', {
   transform: (document, returnedObject) => {
+    // add the property `.id` from `._id` casted to a string
     returnedObject.id = returnedObject._id.toString()
+    // delete the property `._id`
     delete returnedObject._id
+    // delete the property `.__v`
     delete returnedObject.__v
   },
 })
 
+// Mongoose will automatically create a collection on MongoDB with the plural
+// form of our document, in this case the collection will be `People`
 module.exports = mongoose.model('Person', personSchema)
