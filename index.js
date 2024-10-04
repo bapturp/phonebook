@@ -70,7 +70,7 @@ class ContentMissingError extends Error {
   }
 }
 
-app.post('/api/persons', async (request, response) => {
+app.post('/api/persons', async (request, response, next) => {
   const { name, number } = request.body
 
   if (!name || !number) {
@@ -121,6 +121,8 @@ const errorHandler = (error, request, response, next) => {
     case 'CastError':
       return response.status(400).json({ error: 'malformatted id' })
     case 'ContentMissing':
+      return response.status(400).json({ error: error.message })
+    case 'ValidationError':
       return response.status(400).json({ error: error.message })
     default:
       return response.status(500).json({ error: error })
