@@ -22,6 +22,17 @@ app.use(cors())
 app.use(express.static('dist'))
 
 // routes handler
+app.get('/info', (request, response, next) => {
+  Person.find({})
+    .then((people) => {
+      const len = people ? people.length : 0
+      response.send(
+        `<p>Phonebook has info for ${len} people</p><p>${Date()}</p>`
+      )
+    })
+    .catch((error) => next(error))
+})
+
 app.get('/api/persons', (request, response, next) => {
   Person.find({})
     .then((person) => {
@@ -30,17 +41,6 @@ app.get('/api/persons', (request, response, next) => {
       } else {
         response.json([{}])
       }
-    })
-    .catch((error) => next(error))
-})
-
-app.get('/info', (request, response, next) => {
-  Person.find({})
-    .then((people) => {
-      const len = people ? people.length : 0
-      response.send(
-        `<p>Phonebook has info for ${len} people</p><p>${Date()}</p>`
-      )
     })
     .catch((error) => next(error))
 })
